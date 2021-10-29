@@ -1,0 +1,16 @@
+#!/bin/bash
+read -n1 -p "Production (0) OR Development (1)? [0,1]" input 
+case $input in  
+  0) echo -e "\nUPDATING AND RESTARTING THE *PRODUCTION* BUILD!!!";
+    cd ../;
+    APP_NAME="application";
+    SERVER_ADRS="123.12.123.123";
+    SERVER_PASS='passphrase';
+    DOCKER_CMDS="cd $APP_NAME; docker-compose -f production.yml down; docker-compose -f production.yml up --build";
+    sshpass -p "$SERVER_PASS" rsync -avz --exclude-from=$APP_NAME/exclude.txt $APP_NAME/ root@$SERVER_ADRS:/root/$APP_NAME/;
+    sshpass -p "$SERVER_PASS" ssh -o StrictHostKeyChecking=no root@$SERVER_ADRS "$DOCKER_CMDS" ;; 
+  1) echo -e "\nUPDATING AND RESTARTING THE *DEVELOPMENT* BUILD!!!";
+    docker-compose -f local.yml down;
+    docker-compose -f local.yml up --build ;; 
+  *) echo -e "\nINVALID INPUT!!!\nONLY 0 OR 1 ARE VALID!!!" ;; 
+esac
